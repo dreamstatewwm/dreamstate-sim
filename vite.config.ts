@@ -24,7 +24,8 @@ export default defineConfig(({ command }) => ({
     },
   ],
   define: { __APP_VERSION__: JSON.stringify(buildVersion) },
-  base: command === "build" ? "/where-builds-meet/" : "/",
+  // BASE_PATH lets a fork serve the build from another path (DreamState serves it at /sim/).
+  base: command === "build" ? (process.env.BASE_PATH ?? "/where-builds-meet/") : "/",
   build: {
     rollupOptions: {
       output: {
