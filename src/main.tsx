@@ -5,6 +5,8 @@ import "./styles/index.css"
 import "@fontsource-variable/noto-sans/wght.css"
 import "@fontsource-variable/noto-sans-tc/wght.css"
 import "@fontsource-variable/noto-sans-kr/wght.css"
+import { applyCodexDeepLink } from "@/dreamstate/deepLink"
+
 import App from "./App"
 import { startDeploymentUpdates } from "./deploymentUpdates"
 import { initializeI18n } from "./i18n"
@@ -24,8 +26,10 @@ import "./styles/domains/rotations.css"
 import "./styles/domains/skills.css"
 import "./styles/domains/simulations.css"
 import "./styles/mobile.css"
+import "@/dreamstate/skin.css"
 
 migrateSessionStorage()
+applyCodexDeepLink()
 startDeploymentUpdates()
 await initializeI18n()
 

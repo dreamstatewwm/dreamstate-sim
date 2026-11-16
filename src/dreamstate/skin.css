@@ -1,0 +1,55 @@
+/*
+ * DreamState fork: the Codex look (warm-ink dark theme, blue accent, system font) layered over the
+ * upstream tokens. Unlayered rules beat the upstream `@layer tokens`, so the upstream stylesheets
+ * stay untouched and keep merging cleanly.
+ */
+:root {
+  --font-latin:
+    -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", system-ui, "Segoe UI", Roboto, "Noto Sans Variable",
+    "Noto Sans", sans-serif;
+  --bg: #141311;
+  --bg-gradient-top: #141311;
+  --surface: #201e1b;
+  --surface-alt: #1b1a17;
+  --surface-sunken: #171614;
+  --surface-header: #2a2824;
+  --border: #3a3732;
+  --text: #e2ddd3;
+  --text-muted: #a09a8e;
+  --primary: #6aaeff;
+  --primary-contrast: #10202f;
+  --backdrop: rgb(10 9 8 / 0.7);
+}
+
+.ds-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-xs) var(--space-md);
+  padding: var(--space-sm) var(--space-md);
+  background: #141311;
+  border-bottom: 1px solid #3a3732;
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  color: #a09a8e;
+}
+
+.ds-bar a {
+  color: #6aaeff;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.ds-bar .ds-home {
+  color: #f3efe7;
+  font-size: 1rem;
+}
+
+.ds-bar small {
+  font-size: 0.75rem;
+}
+
+.ds-bar small a {
+  font-weight: 500;
+}
