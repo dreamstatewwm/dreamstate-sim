@@ -1,0 +1,64 @@
+# DreamState fork: once a day, merge Greydust's `release` branch into our `dreamstate` branch,
+# run the upstream checks (i18n, tests, typecheck) and build the app for the /sim/ path.
+# Only if everything passes: push the merged `dreamstate` branch and publish the built site to the
+# `build` branch, which the DreamState Codex deploy serves at /sim/. A merge conflict or a failing
+# check stops the run and publishes nothing, so the last good build stays live.
+name: DreamState sync and build
+
+on:
+  schedule:
+    - cron: "17 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: dreamstate-sync
+  cancel-in-progress: false
+
+jobs:
+  sync-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: dreamstate
+          fetch-depth: 0
+
+      - name: Merge upstream release
+        run: |
+          git config user.name "dreamstate-sync"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git remote add upstream https://github.com/greydust/where-builds-meet.git
+          git fetch --no-tags upstream release
+          git merge --no-edit upstream/release
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      - name: Check and build for /sim/
+        env:
+          BASE_PATH: /sim/
+        run: npm run build
+
+      - name: Push merged dreamstate branch
+        run: git push origin HEAD:dreamstate
+
+      - name: Publish build branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          SRC=$(git rev-parse --short HEAD)
+          UP=$(git rev-parse --short upstream/release)
+          cd dist
+          git init -q -b build
+          git add -A
+          git -c user.name="dreamstate-sync" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+            commit -q -m "Build of dreamstate $SRC (upstream release $UP)" \
+            -m "Source: https://github.com/${{ github.repository }}/tree/$SRC (GPL-3.0, modified from greydust/where-builds-meet)"
+          git push -f -q "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git" build
