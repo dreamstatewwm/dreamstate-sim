@@ -1,0 +1,303 @@
+/* DreamState fork: the simple Codex-style page (DreamStateView). Colours follow skin.css. */
+.ds-view {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+  max-width: 73.75rem;
+  margin: 0 auto;
+  padding: var(--space-lg) var(--space-lg) var(--space-xl);
+  font-family: var(--font-sans);
+  color: var(--text);
+  line-height: 1.5;
+}
+
+.ds-head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: var(--space-sm);
+}
+
+.ds-head h1 {
+  margin: 0;
+  font-size: 1.75rem;
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+  color: #f3efe7;
+}
+
+.ds-head p {
+  margin: var(--space-2xs) 0 0;
+  max-width: 70ch;
+  color: var(--text-muted);
+}
+
+.ds-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  min-width: 0;
+  padding: var(--space-lg);
+  border-radius: 1.25rem;
+  background: var(--surface);
+}
+
+.ds-panel h2 {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin: 0;
+  font-size: 1.125rem;
+  color: #f3efe7;
+}
+
+.ds-step {
+  display: grid;
+  place-items: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 0.5rem;
+  background: var(--primary);
+  color: var(--primary-contrast);
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.ds-paths {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+
+.ds-paths,
+.ds-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+}
+
+.ds-chip,
+.ds-pill,
+.ds-advanced {
+  min-height: 2.25rem;
+  padding: var(--space-xs) var(--space-md);
+  border: 1px solid transparent;
+  font: 600 0.875rem/1.2 var(--font-sans);
+  cursor: pointer;
+  transition:
+    transform 0.15s,
+    background-color 0.15s;
+}
+
+.ds-chip {
+  border-radius: 0.75rem;
+  background: var(--surface-header);
+  color: var(--text);
+}
+
+.ds-chip.on {
+  border-color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 16%, transparent);
+  color: #f3efe7;
+}
+
+.ds-pill,
+.ds-advanced {
+  border-radius: 999px;
+  background: rgb(160 150 132 / 0.17);
+  color: var(--text-muted);
+}
+
+.ds-pill.on,
+.ds-advanced.on {
+  background: var(--primary);
+  color: var(--primary-contrast);
+}
+
+.ds-chip:active,
+.ds-pill:active,
+.ds-advanced:active {
+  transform: scale(0.97);
+}
+
+.ds-buildrow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-sm) var(--space-lg);
+}
+
+.ds-buildrow .ds-pills {
+  align-items: center;
+}
+
+.ds-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.ds-muted {
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+}
+
+.ds-muted b {
+  color: var(--text);
+}
+
+.ds-results {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-md);
+  align-items: start;
+}
+
+.ds-dpsrow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-xs) var(--space-sm);
+}
+
+.ds-dpsrow b {
+  font-size: 2.5rem;
+  line-height: 1.05;
+  font-variant-numeric: tabular-nums;
+  color: #f3efe7;
+}
+
+.ds-warn {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #e0a44a;
+}
+
+.ds-split {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-xs);
+}
+
+.ds-big {
+  font-size: 1.375rem;
+  color: #f3efe7;
+}
+
+.ds-meter {
+  display: block;
+  height: 0.375rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgb(160 150 132 / 0.17);
+}
+
+.ds-meter.ds-thick {
+  height: 0.625rem;
+}
+
+.ds-meter > i {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--primary);
+  transition: width 0.4s;
+}
+
+.ds-rate {
+  display: grid;
+  grid-template-columns: 5.5rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-sm);
+  font-size: 0.875rem;
+}
+
+.ds-num {
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.ds-prio {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ds-prio li {
+  display: grid;
+  grid-template-columns: 1.375rem minmax(0, 1fr) auto;
+  align-items: start;
+  gap: var(--space-sm);
+  font-size: 0.875rem;
+}
+
+.ds-n {
+  display: grid;
+  place-items: center;
+  width: 1.375rem;
+  height: 1.375rem;
+  border-radius: 0.5rem;
+  background: rgb(160 150 132 / 0.17);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.ds-prio-name {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2xs);
+  min-width: 0;
+}
+
+.ds-gain {
+  font-weight: 600;
+  color: var(--primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.ds-credit {
+  margin: 0;
+  max-width: 75ch;
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+}
+
+.ds-credit a {
+  color: var(--primary);
+}
+
+/* Simple mode: only the DreamState page shows; the full simulator stays mounted underneath. */
+.ds-simple .page-content > :not(.ds-view),
+.ds-simple .page-footer {
+  display: none;
+}
+
+@media (max-width: 40rem) {
+  .ds-results {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .ds-view {
+    padding: var(--space-md) var(--space-sm) var(--space-xl);
+  }
+
+  .ds-panel {
+    padding: var(--space-md);
+  }
+
+  .ds-head h1 {
+    font-size: 1.5rem;
+  }
+
+  .ds-dpsrow b {
+    font-size: 2rem;
+  }
+}

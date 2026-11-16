@@ -8,9 +8,10 @@ import { useLoadoutStore } from "@/stores/loadoutStore"
  * Runs before the app mounts and goes through the stores' own actions, so the choice is saved
  * like a manual pick and the user's other saved selections stay as they were.
  */
-type CodexBuild = "min" | "max"
+export type CodexBuild = "min" | "max"
 
-const codexPaths: Record<string, { pathId: PathId; presets: Partial<Record<CodexBuild, string>> }> = {
+/** Codex path ids in Codex order, each with its upstream path and the two preset builds. */
+export const codexPaths: Record<string, { pathId: PathId; presets: Partial<Record<CodexBuild, string>> }> = {
   kite: { pathId: "bamboocutKite", presets: { min: "kite-fully-relayed-min-bp", max: "kite-fully-relayed-max-bp" } },
   strength: {
     pathId: "stonesplitStrength",
