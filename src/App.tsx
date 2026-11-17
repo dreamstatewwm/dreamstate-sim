@@ -42,6 +42,8 @@ const BuildTab = lazy(loadBuildTab)
 const SimulationTab = lazy(loadSimulationTab)
 const RotationEditorTab = lazy(() => loadRotationEditorTab().then(module => ({ default: module.RotationEditorTab })))
 import { visibleBuilds, visibleGearItems } from "@/application/gearScope"
+import { DreamStateView } from "@/dreamstate/DreamStateView"
+import { useDreamStateMode } from "@/dreamstate/useDreamStateMode"
 
 import { buildSetupOverrideStorageKey, skillStorageKey } from "./application/persistence/keys"
 import { withPathSelection } from "./application/persistence/pathSelection"
@@ -469,13 +471,35 @@ export default function App() {
     [buildSetupOverrides],
   )
 
+  const dreamState = useDreamStateMode({ pathId, activeBuildIdsByPath, selectPath })
   return (
     <main
-      className={`page-shell layout-${layoutMode} ${layoutMode === "pc" && (activeTab === "build" || activeTab === "rotations") ? "viewport-page-shell" : ""}`}
+      className={`${dreamState.advanced ? "" : "ds-simple "}page-shell layout-${layoutMode} ${layoutMode === "pc" && (activeTab === "build" || activeTab === "rotations") ? "viewport-page-shell" : ""}`}
       data-layout={layoutMode}
       data-display-sizing={displaySizing}
     >
       <div className="page-content">
+        <DreamStateView
+          pathId={pathId}
+          activeBuildId={activeBuild?.id}
+          buildName={activeBuildDisplayName}
+          rotationName={activeRotationDisplayName}
+          metrics={activeResult?.metrics}
+          graduationDps={activeResult?.graduation?.dps}
+          precision={character.derivedStats.effectivePrecision}
+          crit={character.derivedStats.effectiveCrit}
+          affinity={character.derivedStats.effectiveAffinity}
+          advanced={dreamState.advanced}
+          onAdvancedChange={dreamState.setAdvanced}
+          onSelectPath={dreamState.selectCodexPath}
+          onSelectBuild={dreamState.selectCodexBuild}
+          build={activeBuild}
+          gearItems={visibleGear}
+          context={buildMeasurementContext}
+          rotation={activeResult?.rotation}
+          weapons={settings.weapons}
+          gearTier={breakthrough.gearTier}
+        />
         <header className="page-header">
           <div className="page-header-start">
             <h1>{t("ui.app.whereBuildsMeet")}</h1>
