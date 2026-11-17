@@ -4,7 +4,6 @@ import { Meter } from "@/dreamstate/Meter"
 import {
   blankValue,
   capAndFilterGearDraft,
-  capGearDraft,
   formatNumber,
   savedValueToDraft,
   type GearDraft,
@@ -125,8 +124,9 @@ export function PieceForm(props: Props) {
       return
     }
     const extras = result.additionalAffixes.slice(0, 4).map(affix => savedValueToDraft(affix, gearData.affixes))
+    // capAndFilter also maps keys to the scanned tier (the Tier 100 "All Mystic" line, for one).
     setDraft(current =>
-      capGearDraft(
+      capAndFilterGearDraft(
         Object.assign({}, current, {
           level: result.level,
           rarity: result.rarity,
@@ -136,6 +136,7 @@ export function PieceForm(props: Props) {
           additionalAffixes: [...extras, ...Array.from({ length: 4 - extras.length }, blankValue)],
           attunement: result.attunement ? savedValueToDraft(result.attunement, attunementData) : blankValue(),
         }),
+        definition,
       ),
     )
   }

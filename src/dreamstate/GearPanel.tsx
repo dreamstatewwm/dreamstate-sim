@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 
 import type { PathId } from "@/application/contracts"
 import { formatNumber } from "@/application/formatting"
@@ -254,6 +254,7 @@ type PlanStep = { slot: GearSlot; action: string; gain: number; relayed: boolean
 export function RetunePlan(props: Props) {
   const { build, gearItems, pathId, context, rotation } = props
   const [requested, setRequested] = useState(false)
+  const [attempt, setAttempt] = useState(0)
   const pieces = useMemo(
     () =>
       gearSlots.flatMap(slot => {
@@ -265,6 +266,8 @@ export function RetunePlan(props: Props) {
     [build, gearItems, pathId],
   )
   const targets = useMemo<ThroughputTarget[]>(() => {
+    // `attempt` is read so a stalled sweep can be asked again with fresh targets.
+    void attempt
     if (!requested || !build || build.isDefault) return []
     return pieces.flatMap(({ slot, item }) =>
       gearSuggestionTargets({
@@ -277,8 +280,25 @@ export function RetunePlan(props: Props) {
         pathId,
       }).map(target => ({ key: `${slot}|${target.key}`, build: target.build, gearItems: target.gearItems })),
     )
-  }, [requested, build, pieces, gearItems, pathId])
+  }, [requested, build, pieces, gearItems, pathId, attempt])
   const readings = useBuildThroughputs({ targets, gearItems, context, rotation, editorSweep: true })
+  const measuredCount = Object.values(readings).filter(Boolean).length
+  // A reading cancelled mid-sweep (the main numbers recalculating supersedes it) is never asked for
+  // again by the sweep, so a plan waiting on it would wait forever. When nothing new arrives for a
+  // while, start the sweep again: readings already held are reused, only the missing ones run.
+  const lastCount = useRef({ count: -1, at: 0 })
+  useEffect(() => {
+    if (!targets.length || measuredCount >= targets.length) return
+    const timer = setInterval(() => {
+      const now = Date.now()
+      if (lastCount.current.count !== measuredCount) lastCount.current = { count: measuredCount, at: now }
+      else if (now - lastCount.current.at > 6000) {
+        lastCount.current = { count: measuredCount, at: now }
+        setAttempt(current => current + 1)
+      }
+    }, 1000)
+    return () => clearInterval(timer)
+  }, [targets.length, measuredCount])
   const steps = useMemo(() => {
     if (!targets.length) return undefined
     const collected: PlanStep[] = []
@@ -338,7 +358,14 @@ export function RetunePlan(props: Props) {
           </>
         )
       case "working":
-        return <span className="ds-muted">{copy.planWorking}</span>
+        return (
+          <>
+            <span className="ds-muted">
+              {copy.planWorking} {measuredCount} / {targets.length}
+            </span>
+            <Meter fraction={targets.length ? measuredCount / targets.length : 0} />
+          </>
+        )
       case "none":
         return <span className="ds-muted">{copy.planNone}</span>
       case "done":

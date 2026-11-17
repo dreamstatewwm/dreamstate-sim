@@ -188,4 +188,67 @@ describe("gear-ocr", () => {
       "Unclear OCR fields must use the editor gear type and leave attribute rows empty.",
     )
   })
+
+  // DreamState fork: lines players reported the scan missing.
+  const inlineTsv = (lines: ReadonlyArray<readonly [number, string, string]>) =>
+    lines
+      .map(([top, label, value], index) =>
+        [label, value]
+          .map((text, word) =>
+            [5, 1, 1, 1, index + 1, word + 1, word === 0 ? 225 : 520, top, 25, 24, 90, text].join("\t"),
+          )
+          .join("\n"),
+      )
+      .join("\n")
+
+  it("reads the game's wording of the boss line and Tier 100 mystic lines without a tier banner", () => {
+    const tsv = inlineTsv([
+      [300, "Critical Rate", "+10.4%"],
+      [430, "Min Physical Attack", "+90.6"],
+      [560, "Agility", "+57.4"],
+      [690, "Precision Rate", "+9.4%"],
+      [820, "All Mystic Skill DMG Boost", "+11.4%"],
+      [950, "Physical Resistance", "+7.2"],
+    ])
+    // No "Tier" text; the T100 Gold armor base stats (6879 HP, 25 defense) are visible instead.
+    const result = parseGearOcrTsv(tsv, "Helmet\nMax HP 6879\nPhysical Defense 25", 891, 1143, "helmet")
+    assert.equal(result.level, 100, "Base stats that only match Tier 100 must set the tier.")
+    assert.deepEqual(
+      result.additionalAffixes.map(affix => affix.key),
+      ["minPhys", "agility", "precision", "allMysticDmgBoost"],
+      "The six-row card: one main line, four extra lines, one attunement.",
+    )
+  })
+
+  it("reads the game's wording of the boss line", () => {
+    const tsv = inlineTsv([
+      [300, "Critical Rate", "+10.4%"],
+      [430, "Min Physical Attack", "+90.6"],
+      [560, "Agility", "+57.4"],
+      [690, "DMG Boost Vs. Boss Units", "+3.8%"],
+      [820, "Max Bamboocut Attack", "+51.4"],
+      [950, "Physical Resistance", "+7.2"],
+    ])
+    const result = parseGearOcrTsv(tsv, "Bracers\nTier 100", 891, 1143, "bracer")
+    assert(
+      result.additionalAffixes.some(affix => affix.key === "vsBossDmg"),
+      JSON.stringify(result.additionalAffixes),
+    )
+  })
+
+  it("matches weapon art lines with a plural or one misread letter", () => {
+    const tsv = inlineTsv([
+      [300, "Min Physical Attack", "+90.6"],
+      [430, "Min Physical Attack", "+90.6"],
+      [560, "Agility", "+57.4"],
+      [690, "Art of Gauntiets DMG Boost", "+7.0%"],
+      [820, "Critical Rate", "+10.4%"],
+      [950, "Physical Penetration", "+12.8"],
+    ])
+    const result = parseGearOcrTsv(tsv, "Gauntlet\nTier 100", 891, 1143, "gauntlet")
+    assert(
+      result.additionalAffixes.some(affix => affix.key === "gauntletDmgBoost"),
+      `Expected Art of Gauntlet, got ${JSON.stringify(result.additionalAffixes)}`,
+    )
+  })
 })

@@ -35,6 +35,9 @@ const normalize = (value: string) =>
     .replace(/precision rate/g, "precision")
     .replace(/art\s*of\s*mo\s*blade\s*dmg\s*boost/g, "art of mo")
     .replace(/art\s*of\s*heng\s*blade\s*dmg\s*boost/g, "art of heng")
+    // The game words the boss line as "DMG Boost Vs. Boss Units"; Where Datas Mine as "Combat Boost
+    // Against Boss Units". Both are the editor's "vs Boss DMG".
+    .replace(/(?:dmg|combat)\s*boost\s*(?:vs\.?|against)\s*boss\s*units?/g, "vs boss dmg")
     .replace(/[^a-z0-9]+/g, " ")
     .replace(/\s+/g, " ")
     .trim()
@@ -134,8 +137,66 @@ function valueForLabel(label: string, allowedKeys: string[], definitions: Record
         normalizeLabel(definitions[right]?.name ?? right).length -
         normalizeLabel(definitions[left]?.name ?? left).length,
     )
-  if (candidates.length === 0) throw new Error(`Could not match OCR attribute “${label.trim()}”.`)
-  return candidates[0]
+  if (candidates.length > 0) return candidates[0]
+  const fuzzy = fuzzyLabelMatch(normalizedLabel, allowedKeys, definitions)
+  if (fuzzy) return fuzzy
+  throw new Error(`Could not match OCR attribute “${label.trim()}”.`)
+}
+
+/** Words that every DMG line shares, so they say nothing about which line it is. */
+const fillerWords = new Set(["art", "of", "dmg", "boost", "skill"])
+
+/** True when an OCR word is the name word, allowing a plural and one misread letter. */
+function wordMatches(rawWord: string, nameWord: string) {
+  const ocrWord = rawWord.endsWith("s") && !nameWord.endsWith("s") ? rawWord.slice(0, -1) : rawWord
+  if (ocrWord === nameWord) return true
+  if (nameWord.length < 5 || Math.abs(ocrWord.length - nameWord.length) > 1) return false
+  let edits = 0
+  for (let i = 0, j = 0; i < ocrWord.length || j < nameWord.length;) {
+    if (ocrWord[i] === nameWord[j]) {
+      i += 1
+      j += 1
+      continue
+    }
+    edits += 1
+    if (edits > 1) return false
+    switch (Math.sign(ocrWord.length - nameWord.length)) {
+      case 1:
+        i += 1
+        break
+      case -1:
+        j += 1
+        break
+      default:
+        i += 1
+        j += 1
+    }
+  }
+  return true
+}
+
+/**
+ * A second pass for labels the exact match misses: OCR misreads a letter, or the game words a line
+ * differently ("Art of Gauntlets DMG Boost"). Every meaningful word of the name must appear in the
+ * label; the name with the most such words wins, so "All Mystic Skill" beats a shorter partial.
+ */
+function fuzzyLabelMatch(
+  normalizedLabel: string,
+  allowedKeys: string[],
+  definitions: Record<string, { name?: string }>,
+) {
+  const labelWords = normalizedLabel.split(" ").filter(Boolean)
+  const scored = allowedKeys.flatMap(key => {
+    const words = normalizeLabel(definitions[key]?.name ?? key)
+      .split(" ")
+      .filter(word => word && !fillerWords.has(word))
+    if (!words.length) return []
+    const all = words.every(word => labelWords.some(ocrWord => wordMatches(ocrWord, word)))
+    return all ? [{ key, score: words.length }] : []
+  })
+  scored.sort((left, right) => right.score - left.score)
+  if (!scored.length || (scored[1] && scored[1].score === scored[0].score)) return undefined
+  return scored[0].key
 }
 
 function numericValue(text: string) {
@@ -168,8 +229,18 @@ export function inferGearLevelAndRarity(definitionId: string, rawText: string) {
   const definition = gearData.gear[definitionId]
   const normalizedText = normalize(rawText)
   const levelMatch = normalizedText.match(gearTierPattern)
-  const level = (levelMatch ? Number(levelMatch[1]) : 96) as GearLevel
   const values = numericTokens(rawText)
+  // No "Tier" text: a tier whose fixed base stats all appear in the screenshot is the tier.
+  const signatureLevel = levelMatch
+    ? undefined
+    : gearLevels.find(candidate =>
+        (["Gold", "Purple"] as const).some(rarity => {
+          const signature = definition?.baseStats[String(candidate)]?.[rarity]
+          const numbers = Object.values(signature ?? {}).filter((value): value is number => typeof value === "number")
+          return numbers.length > 0 && numbers.every(value => containsNumber(values, value))
+        }),
+      )
+  const level = (levelMatch ? Number(levelMatch[1]) : (signatureLevel ?? 96)) as GearLevel
   const rarities = (["Gold", "Purple"] as const).filter(rarity => {
     const signature = definition?.baseStats[String(level)]?.[rarity]
     const signatureValues = Object.values(signature ?? {}).filter((value): value is number => typeof value === "number")
