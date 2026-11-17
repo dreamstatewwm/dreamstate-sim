@@ -472,6 +472,10 @@ export default function App() {
   )
 
   const dreamState = useDreamStateMode({ pathId, activeBuildIdsByPath, selectPath })
+  const dreamStateOwnBuilds = useMemo(
+    () => availableBuildEntries.filter(entry => !entry.isDefault).map(entry => ({ id: entry.id, name: entry.name })),
+    [availableBuildEntries],
+  )
   return (
     <main
       className={`${dreamState.advanced ? "" : "ds-simple "}page-shell layout-${layoutMode} ${layoutMode === "pc" && (activeTab === "build" || activeTab === "rotations") ? "viewport-page-shell" : ""}`}
@@ -499,6 +503,8 @@ export default function App() {
           rotation={activeResult?.rotation}
           weapons={settings.weapons}
           gearTier={breakthrough.gearTier}
+          ownBuilds={dreamStateOwnBuilds}
+          onSelectOwnBuild={id => useGearStore.getState().selectBuildForPath(id, pathId)}
         />
         <header className="page-header">
           <div className="page-header-start">

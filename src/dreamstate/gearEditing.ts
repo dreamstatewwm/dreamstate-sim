@@ -40,9 +40,11 @@ export function ensureOwnBuild(pathId: PathId, build: BuildEntry, gearTier: Gear
   if (!build.isDefault) return build
   const store = useGearStore.getState()
   const id = `build-${nanoid()}`
-  store.updateBuildState(pathId, current =>
-    duplicateBuildState(current, build.id, { id, name: ownBuildName }, gearTier),
-  )
+  // "My gear", then "My gear 2", … so several copies stay tellable apart in the Build row.
+  const taken = new Set(store.buildState.entries.map(entry => entry.name))
+  let name = ownBuildName
+  for (let n = 2; taken.has(name); n += 1) name = `${ownBuildName} ${n}`
+  store.updateBuildState(pathId, current => duplicateBuildState(current, build.id, { id, name }, gearTier))
   store.selectBuildForPath(id, pathId)
   const created = useGearStore.getState().buildState.entries.find(entry => entry.id === id)
   if (!created) throw new Error("Could not create an editable copy of the preset.")
