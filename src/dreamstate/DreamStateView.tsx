@@ -76,6 +76,8 @@ type Props = {
   rotation: RotationRecord | undefined
   weapons: [WeaponId, WeaponId]
   gearTier: GearLevel
+  ownBuilds: { id: string; name: string }[]
+  onSelectOwnBuild: (id: string) => void
 }
 
 export function DreamStateView(props: Props) {
@@ -87,6 +89,9 @@ export function DreamStateView(props: Props) {
     .filter(row => row.increase > 0)
     .slice(0, 5)
   const topIncrease = priority[0]?.increase ?? 0
+  const usePreset = () => {
+    if (current) props.onSelectBuild(current, current.presets[current.stronger] ? current.stronger : "max")
+  }
   const buildButton = (entry: CodexPathEntry, build: CodexBuild) => {
     const label = build === "max" ? copy.maxAtk : copy.minAtk
     const only = !entry.presets.min
@@ -154,6 +159,17 @@ export function DreamStateView(props: Props) {
             <div className="ds-pills">
               {buildButton(current, "max")}
               {current.presets.min ? buildButton(current, "min") : null}
+              {props.ownBuilds.map(own => (
+                <button
+                  type="button"
+                  key={own.id}
+                  className={`ds-pill ${own.id === activeBuildId ? "on" : ""}`}
+                  aria-pressed={own.id === activeBuildId}
+                  onClick={() => props.onSelectOwnBuild(own.id)}
+                >
+                  {own.name}
+                </button>
+              ))}
             </div>
             <span className="ds-muted">
               {currentBuild ? copy.preset : copy.custom}: <b>{props.buildName}</b> · {copy.rotation}:{" "}
@@ -172,6 +188,7 @@ export function DreamStateView(props: Props) {
           rotation={props.rotation}
           weapons={props.weapons}
           gearTier={props.gearTier}
+          onUsePreset={usePreset}
         />
         <aside className="ds-results">
           <section className="ds-panel ds-dps">
@@ -184,7 +201,7 @@ export function DreamStateView(props: Props) {
                 </span>
               ) : null}
             </div>
-            <CalculationStatus category="baseline" />
+            <CalculationStatus category="baseline" className="ds-status" />
           </section>
 
           <section className="ds-panel">
@@ -207,7 +224,7 @@ export function DreamStateView(props: Props) {
           <section className="ds-panel">
             <div className="ds-split">
               <span className="ds-label">{copy.priority}</span>
-              <CalculationStatus category="statPriority" />
+              <CalculationStatus category="statPriority" className="ds-status" />
             </div>
             <ol className="ds-prio">
               {priority.map((row, index) => (
@@ -231,6 +248,7 @@ export function DreamStateView(props: Props) {
             rotation={props.rotation}
             weapons={props.weapons}
             gearTier={props.gearTier}
+            onUsePreset={usePreset}
           />
         </aside>
       </div>

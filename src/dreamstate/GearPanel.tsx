@@ -40,6 +40,8 @@ const copy = {
   tapToEdit: "Tap a piece to type it in or scan a screenshot of it.",
   fromPreset: "Start from the preset",
   fromPresetHint: "Then change the pieces you have",
+  backToPreset: "Compare with the preset",
+  backToPresetHint: "Your gear stays saved under Build",
   presetNote: "Showing the preset's gear. Import yours, or tap a piece to start your own copy.",
   ownNote: "Your gear is saved in this browser only.",
   empty: "Nothing equipped",
@@ -88,6 +90,7 @@ type Props = {
   rotation: RotationRecord | undefined
   weapons: [WeaponId, WeaponId]
   gearTier: GearLevel
+  onUsePreset: () => void
 }
 
 export function GearPanel(props: Props) {
@@ -129,7 +132,12 @@ export function GearPanel(props: Props) {
             <span>{copy.fromPreset}</span>
             <small>{copy.fromPresetHint}</small>
           </button>
-        ) : null}
+        ) : (
+          <button type="button" className="ds-bigbtn" onClick={props.onUsePreset}>
+            <span>{copy.backToPreset}</span>
+            <small>{copy.backToPresetHint}</small>
+          </button>
+        )}
       </div>
       <span className="ds-muted">
         {build?.isDefault ? copy.presetNote : copy.ownNote} {copy.tapToEdit} {copy.lead}
