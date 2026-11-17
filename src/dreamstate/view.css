@@ -643,6 +643,16 @@
   outline: none;
 }
 
+/* A heading above each block of gear cards, across the whole grid. */
+.ds-gear-group {
+  grid-column: 1 / -1;
+  margin-top: var(--space-xs);
+}
+
+.ds-gear-group:first-child {
+  margin-top: 0;
+}
+
 /* Simple mode: only the DreamState page shows; the full simulator stays mounted underneath. */
 .ds-simple .page-content > :not(.ds-view),
 .ds-simple .page-footer {
