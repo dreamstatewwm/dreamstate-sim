@@ -1,14 +1,18 @@
-import { useMemo } from "react"
-
 import type { PathId } from "@/application/contracts"
 import { formatNumber, formatThroughput } from "@/application/formatting"
 import { typedPathDefinitions } from "@/application/gameData/paths"
 import { CalculationStatus } from "@/application/results/CalculationStatus"
+import type { MeasurementContext } from "@/calculations/rotationCalculationBundle"
 import type { RotationMetrics } from "@/calculations/rotationMetrics"
+import type { RotationRecord } from "@/calculations/rotationTimeline"
 import { codexBuildOf, codexPathList, type CodexPathEntry } from "@/dreamstate/codexBuilds"
 import type { CodexBuild } from "@/dreamstate/deepLink"
+import { GearPanel, RetunePlan } from "@/dreamstate/GearPanel"
+import { Meter } from "@/dreamstate/Meter"
+import type { BuildEntry, GearItem, GearLevel } from "@/gear"
 import { gameText } from "@/i18n"
 import { statPriorityDisplayRows } from "@/statPriorityDisplay"
+import type { WeaponId } from "@/types"
 
 import "./view.css"
 
@@ -66,6 +70,13 @@ type Props = {
   onAdvancedChange: (advanced: boolean) => void
   onSelectPath: (entry: CodexPathEntry) => void
   onSelectBuild: (entry: CodexPathEntry, build: CodexBuild) => void
+  build: BuildEntry | undefined
+  gearItems: GearItem[]
+  context: MeasurementContext
+  rotation: RotationRecord | undefined
+  weapons: [WeaponId, WeaponId]
+  gearTier: GearLevel
+  onEditGear: () => void
 }
 
 export function DreamStateView(props: Props) {
@@ -153,56 +164,78 @@ export function DreamStateView(props: Props) {
         ) : null}
       </section>
 
-      <div className="ds-results">
-        <section className="ds-panel ds-dps">
-          <span className="ds-label">{copy.dps}</span>
-          <div className="ds-dpsrow">
-            <b>{metrics ? formatThroughput(metrics.dps, 0) : "—"}</b>
-            {graduation !== undefined && graduation < 99.95 ? (
-              <span className="ds-warn">
-                {formatNumber(Math.round((graduation - 100) * 10) / 10)}% {copy.vsBest}
-              </span>
-            ) : null}
-          </div>
-          <CalculationStatus category="baseline" />
-        </section>
-
-        <section className="ds-panel">
-          <div className="ds-split">
-            <span className="ds-label">{copy.graduation}</span>
-            <b className="ds-big">{graduation === undefined ? "—" : `${formatNumber(Math.round(graduation))}%`}</b>
-          </div>
-          <Meter fraction={(graduation ?? 0) / 100} thick />
-          <span className="ds-muted">{copy.graduationNote}</span>
-        </section>
-
-        <section className="ds-panel">
-          <span className="ds-label">{copy.hitRates}</span>
-          {rateRow(copy.precision, props.precision, rateCaps.precision)}
-          {rateRow(copy.crit, props.crit, rateCaps.crit)}
-          {rateRow(copy.affinity, props.affinity, rateCaps.affinity)}
-          <span className="ds-muted">{copy.capsNote}</span>
-        </section>
-
-        <section className="ds-panel">
-          <div className="ds-split">
-            <span className="ds-label">{copy.priority}</span>
-            <CalculationStatus category="statPriority" />
-          </div>
-          <ol className="ds-prio">
-            {priority.map((row, index) => (
-              <li key={row.label}>
-                <span className="ds-n">{index + 1}</span>
-                <span className="ds-prio-name">
-                  {gameText(row.label)}
-                  <Meter fraction={topIncrease > 0 ? row.increase / topIncrease : 0} />
+      <div className="ds-main">
+        <GearPanel
+          pathId={pathId}
+          build={props.build}
+          gearItems={props.gearItems}
+          context={props.context}
+          rotation={props.rotation}
+          weapons={props.weapons}
+          gearTier={props.gearTier}
+          onEditGear={props.onEditGear}
+        />
+        <aside className="ds-results">
+          <section className="ds-panel ds-dps">
+            <span className="ds-label">{copy.dps}</span>
+            <div className="ds-dpsrow">
+              <b>{metrics ? formatThroughput(metrics.dps, 0) : "—"}</b>
+              {graduation !== undefined && graduation < 99.95 ? (
+                <span className="ds-warn">
+                  {formatNumber(Math.round((graduation - 100) * 10) / 10)}% {copy.vsBest}
                 </span>
-                <span className="ds-gain">+{formatNumber(Math.round(row.increase * 100) / 100)}%</span>
-              </li>
-            ))}
-          </ol>
-          <span className="ds-muted">{copy.priorityNote}</span>
-        </section>
+              ) : null}
+            </div>
+            <CalculationStatus category="baseline" />
+          </section>
+
+          <section className="ds-panel">
+            <div className="ds-split">
+              <span className="ds-label">{copy.graduation}</span>
+              <b className="ds-big">{graduation === undefined ? "—" : `${formatNumber(Math.round(graduation))}%`}</b>
+            </div>
+            <Meter fraction={(graduation ?? 0) / 100} thick />
+            <span className="ds-muted">{copy.graduationNote}</span>
+          </section>
+
+          <section className="ds-panel">
+            <span className="ds-label">{copy.hitRates}</span>
+            {rateRow(copy.precision, props.precision, rateCaps.precision)}
+            {rateRow(copy.crit, props.crit, rateCaps.crit)}
+            {rateRow(copy.affinity, props.affinity, rateCaps.affinity)}
+            <span className="ds-muted">{copy.capsNote}</span>
+          </section>
+
+          <section className="ds-panel">
+            <div className="ds-split">
+              <span className="ds-label">{copy.priority}</span>
+              <CalculationStatus category="statPriority" />
+            </div>
+            <ol className="ds-prio">
+              {priority.map((row, index) => (
+                <li key={row.label}>
+                  <span className="ds-n">{index + 1}</span>
+                  <span className="ds-prio-name">
+                    {gameText(row.label)}
+                    <Meter fraction={topIncrease > 0 ? row.increase / topIncrease : 0} />
+                  </span>
+                  <span className="ds-gain">+{formatNumber(Math.round(row.increase * 100) / 100)}%</span>
+                </li>
+              ))}
+            </ol>
+            <span className="ds-muted">{copy.priorityNote}</span>
+          </section>
+          <RetunePlan
+            pathId={pathId}
+            build={props.build}
+            gearItems={props.gearItems}
+            context={props.context}
+            rotation={props.rotation}
+            weapons={props.weapons}
+            gearTier={props.gearTier}
+            onEditGear={props.onEditGear}
+          />
+        </aside>
       </div>
 
       <p className="ds-credit">
@@ -213,16 +246,5 @@ export function DreamStateView(props: Props) {
         {copy.creditTail}
       </p>
     </section>
-  )
-}
-
-/** A bar filled to `fraction` (0–1) of its width. */
-function Meter({ fraction, thick = false }: { fraction: number; thick?: boolean }) {
-  const width = `${Math.max(0, Math.min(1, fraction)) * 100}%`
-  const style = useMemo(() => ({ width }), [width])
-  return (
-    <span className={`ds-meter ${thick ? "ds-thick" : ""}`}>
-      <i style={style} />
-    </span>
   )
 }

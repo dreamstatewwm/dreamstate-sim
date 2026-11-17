@@ -472,6 +472,11 @@ export default function App() {
   )
 
   const dreamState = useDreamStateMode({ pathId, activeBuildIdsByPath, selectPath })
+  const openGearEditor = () => {
+    dreamState.setAdvanced(true)
+    setActiveTab("build")
+    requestAnimationFrame(() => document.querySelector(".main-tabs")?.scrollIntoView({ behavior: "smooth" }))
+  }
   return (
     <main
       className={`${dreamState.advanced ? "" : "ds-simple "}page-shell layout-${layoutMode} ${layoutMode === "pc" && (activeTab === "build" || activeTab === "rotations") ? "viewport-page-shell" : ""}`}
@@ -493,6 +498,13 @@ export default function App() {
           onAdvancedChange={dreamState.setAdvanced}
           onSelectPath={dreamState.selectCodexPath}
           onSelectBuild={dreamState.selectCodexBuild}
+          build={activeBuild}
+          gearItems={visibleGear}
+          context={buildMeasurementContext}
+          rotation={activeResult?.rotation}
+          weapons={settings.weapons}
+          gearTier={breakthrough.gearTier}
+          onEditGear={openGearEditor}
         />
         <header className="page-header">
           <div className="page-header-start">
