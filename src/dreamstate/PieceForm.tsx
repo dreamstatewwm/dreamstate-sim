@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type Dispatch, type ReactNode, type SetStateAction } from "react"
 
 import { Meter } from "@/dreamstate/Meter"
+import { rollQuality } from "@/dreamstate/rollQuality"
 import {
   blankValue,
   capAndFilterGearDraft,
@@ -202,7 +203,10 @@ export function PieceForm(props: Props) {
         </div>
         {input.value.key && best !== undefined ? (
           <div className="ds-field-meta">
-            <Meter fraction={Number.isFinite(numeric) ? numeric / best : 0} low={numeric / best < 0.85} />
+            <Meter
+              fraction={Number.isFinite(numeric) ? numeric / best : 0}
+              quality={rollQuality(Number.isFinite(numeric) ? numeric / best : 0)}
+            />
             <button
               type="button"
               className="ds-linkbtn"

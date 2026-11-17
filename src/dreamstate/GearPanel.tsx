@@ -8,6 +8,7 @@ import type { ThroughputReading } from "@/calculations/rotationWorkerTransport"
 import { OfficialImportDialog, PieceEditorDialog } from "@/dreamstate/GearDialogs"
 import { ensureOwnBuild } from "@/dreamstate/gearEditing"
 import { Meter } from "@/dreamstate/Meter"
+import { rollQuality } from "@/dreamstate/rollQuality"
 import { gearSuggestionTargets, rankRetuneSuggestions } from "@/features/build/gearSuggestionItems"
 import { useBuildThroughputs, type ThroughputTarget } from "@/features/build/useBuildThroughputs"
 import {
@@ -34,7 +35,13 @@ import type { WeaponId } from "@/types"
  */
 const copy = {
   step: "Your gear",
-  lead: "Bars show each line against its best possible roll.",
+  lead: "Bars show each line against its best possible roll, coloured like the game:",
+  legend: [
+    ["gold", "Gold"],
+    ["purple", "Purple"],
+    ["blue", "Blue"],
+    ["green", "Green"],
+  ] as const,
   importOfficial: "Import from official site",
   importOfficialHint: "One bookmark, all 8 pieces",
   tapToEdit: "Tap a piece to type it in or scan a screenshot of it.",
@@ -157,7 +164,15 @@ export function GearPanel(props: Props) {
         )}
       </div>
       <span className="ds-muted">
-        {build?.isDefault ? copy.presetNote : copy.ownNote} {copy.tapToEdit} {copy.lead}
+        {build?.isDefault ? copy.presetNote : copy.ownNote} {copy.tapToEdit} {copy.lead}{" "}
+        <span className="ds-legend">
+          {copy.legend.map(([quality, label]) => (
+            <span key={quality} className={`ds-q-${quality}`}>
+              <i />
+              {label}
+            </span>
+          ))}
+        </span>
       </span>
       <div className="ds-gearcards">
         {equipped.map(({ slot, item }) => (
@@ -212,13 +227,16 @@ function GearPieceCard(props: {
               {item?.relayed ? ` · ${copy.relayed}` : ""}
             </span>
           </span>
-          {grade !== undefined ? <span className={`ds-grade ${gradeClass(grade)}`}>{grade}%</span> : null}
+          {grade !== undefined ? <span className={`ds-grade ds-q-${rollQuality(grade / 100)}`}>{grade}%</span> : null}
         </span>
         {rows.map(row => (
           <span className="ds-line" key={row.id}>
             <span>{row.label}</span>
             <span className="ds-num">{row.value}</span>
-            <Meter fraction={row.fraction ?? 0} low={(row.fraction ?? 1) < 0.85} />
+            <Meter
+              fraction={row.fraction ?? 0}
+              quality={row.fraction === undefined ? undefined : rollQuality(row.fraction)}
+            />
           </span>
         ))}
         {attunement ? (
@@ -235,17 +253,6 @@ function GearPieceCard(props: {
       </button>
     </>
   )
-}
-
-function gradeClass(grade: number) {
-  switch (true) {
-    case grade >= 95:
-      return "top"
-    case grade >= 85:
-      return ""
-    default:
-      return "low"
-  }
 }
 
 /** One plan step: the best retune for one piece, measured by the engine. */

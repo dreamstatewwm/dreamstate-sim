@@ -228,18 +228,50 @@
   color: var(--text);
 }
 
-.ds-grade.top {
-  color: var(--primary);
+/* In-game roll colours: gold, purple, blue, green (see rollQuality.ts for the cut-offs). */
+.ds-q-gold {
+  --q: #e8b64c;
 }
 
-.ds-grade.low,
-.ds-meter.ds-low > i {
-  color: #e0a44a;
-  background: #e0a44a;
+.ds-q-purple {
+  --q: #b57cf2;
 }
 
-.ds-grade.low {
-  background: none;
+.ds-q-blue {
+  --q: #4fa3f0;
+}
+
+.ds-q-green {
+  --q: #6cc06c;
+}
+
+.ds-meter[class*="ds-q-"] > i {
+  background: var(--q);
+}
+
+.ds-grade[class*="ds-q-"] {
+  color: var(--q);
+}
+
+.ds-legend {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--space-2xs) var(--space-sm);
+}
+
+.ds-legend > span {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2xs);
+  color: var(--q);
+  font-weight: 600;
+}
+
+.ds-legend i {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 999px;
+  background: var(--q);
 }
 
 .ds-line {

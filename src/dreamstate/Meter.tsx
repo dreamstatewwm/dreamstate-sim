@@ -1,11 +1,21 @@
 import { useMemo } from "react"
 
-/** DreamState fork: a bar filled to `fraction` (0–1) of its width; `low` turns it amber. */
-export function Meter({ fraction, thick = false, low = false }: { fraction: number; thick?: boolean; low?: boolean }) {
+import type { RollQuality } from "@/dreamstate/rollQuality"
+
+/** DreamState fork: a bar filled to `fraction` (0–1) of its width; `quality` colours it like the game. */
+export function Meter({
+  fraction,
+  thick = false,
+  quality,
+}: {
+  fraction: number
+  thick?: boolean
+  quality?: RollQuality
+}) {
   const width = `${Math.max(0, Math.min(1, fraction)) * 100}%`
   const style = useMemo(() => ({ width }), [width])
   return (
-    <span className={`ds-meter${thick ? " ds-thick" : ""}${low ? " ds-low" : ""}`}>
+    <span className={`ds-meter${thick ? " ds-thick" : ""}${quality ? ` ds-q-${quality}` : ""}`}>
       <i style={style} />
     </span>
   )
