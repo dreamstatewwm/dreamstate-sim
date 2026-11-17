@@ -187,22 +187,38 @@
   padding: var(--space-sm) var(--space-md);
   border-radius: 1rem;
   background: var(--surface-header);
+  border: 1px solid transparent;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 0.15s,
+    transform 0.15s;
 }
 
-.ds-piece header {
+.ds-piece:hover {
+  border-color: color-mix(in srgb, var(--primary) 45%, transparent);
+}
+
+.ds-piece:active {
+  transform: scale(0.99);
+}
+
+.ds-piece-head {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
   gap: var(--space-xs);
 }
 
-.ds-piece header > div {
+.ds-piece-name {
   display: flex;
   flex-direction: column;
   min-width: 0;
 }
 
-.ds-piece header b {
+.ds-piece-name b {
   color: #f3efe7;
 }
 
@@ -228,6 +244,7 @@
 
 .ds-line {
   display: grid;
+  width: 100%;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: var(--space-3xs) var(--space-sm);
   font-size: 0.8125rem;
@@ -358,6 +375,106 @@
 
 .ds-credit a {
   color: var(--primary);
+}
+
+.ds-importrow {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12.5rem, 1fr));
+  gap: var(--space-xs);
+}
+
+.ds-bigbtn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-3xs);
+  min-height: 2.75rem;
+  padding: var(--space-sm) var(--space-md);
+  border: 0;
+  border-radius: 0.75rem;
+  background: var(--surface-header);
+  color: var(--text);
+  font: 600 0.875rem/1.3 var(--font-sans);
+  text-align: left;
+  cursor: pointer;
+  transition: transform 0.15s;
+}
+
+.ds-bigbtn small {
+  font-weight: 500;
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+}
+
+.ds-bigbtn.on {
+  background: var(--primary);
+  color: var(--primary-contrast);
+}
+
+.ds-bigbtn.on small {
+  color: var(--primary-contrast);
+  opacity: 0.8;
+}
+
+.ds-bigbtn:active {
+  transform: scale(0.98);
+}
+
+.ds-dialog[open] {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  max-width: 35rem;
+  font-family: var(--font-sans);
+}
+
+.ds-dialog h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  color: #f3efe7;
+}
+
+.ds-steps {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  margin: 0;
+  padding-left: var(--space-lg);
+  line-height: 1.5;
+}
+
+.ds-steps a:not(.ds-pill) {
+  color: var(--primary);
+}
+
+.ds-bookmarklet {
+  display: inline-flex;
+  align-items: center;
+  margin-top: var(--space-2xs);
+  text-decoration: none;
+  cursor: grab;
+}
+
+.ds-paste {
+  min-height: 7.5rem;
+  padding: var(--space-sm);
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  background: var(--surface-sunken);
+  color: var(--text);
+  font: 0.8125rem/1.4 var(--font-mono, monospace);
+  resize: vertical;
+}
+
+.ds-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-xs);
+}
+
+.ds-pill:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 /* Simple mode: only the DreamState page shows; the full simulator stays mounted underneath. */

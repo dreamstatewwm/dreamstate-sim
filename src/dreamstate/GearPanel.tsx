@@ -5,6 +5,8 @@ import { formatNumber } from "@/application/formatting"
 import type { MeasurementContext } from "@/calculations/rotationCalculationBundle"
 import type { RotationRecord } from "@/calculations/rotationTimeline"
 import type { ThroughputReading } from "@/calculations/rotationWorkerTransport"
+import { OfficialImportDialog, PieceEditorDialog } from "@/dreamstate/GearDialogs"
+import { ensureOwnBuild } from "@/dreamstate/gearEditing"
 import { Meter } from "@/dreamstate/Meter"
 import { gearSuggestionTargets, rankRetuneSuggestions } from "@/features/build/gearSuggestionItems"
 import { useBuildThroughputs, type ThroughputTarget } from "@/features/build/useBuildThroughputs"
@@ -21,6 +23,8 @@ import {
 } from "@/gear"
 import { retuneCandidates } from "@/gearRetuning"
 import { dataText, gameText } from "@/i18n"
+import { useGearStore } from "@/stores/gearStore"
+import { useSettingsStore } from "@/stores/settingsStore"
 import type { WeaponId } from "@/types"
 
 /**
@@ -31,8 +35,13 @@ import type { WeaponId } from "@/types"
 const copy = {
   step: "Your gear",
   lead: "Bars show each line against its best possible roll.",
-  edit: "Import or edit gear",
-  editHint: "Official-site import, screenshot scan and the editor are in the full simulator",
+  importOfficial: "Import from official site",
+  importOfficialHint: "One bookmark, all 8 pieces",
+  tapToEdit: "Tap a piece to type it in or scan a screenshot of it.",
+  fromPreset: "Start from the preset",
+  fromPresetHint: "Then change the pieces you have",
+  presetNote: "Showing the preset's gear. Import yours, or tap a piece to start your own copy.",
+  ownNote: "Your gear is saved in this browser only.",
   empty: "Nothing equipped",
   relayed: "Relayed",
   attunement: "Attunement",
@@ -79,11 +88,20 @@ type Props = {
   rotation: RotationRecord | undefined
   weapons: [WeaponId, WeaponId]
   gearTier: GearLevel
-  onEditGear: () => void
 }
 
 export function GearPanel(props: Props) {
-  const { build, gearItems, weapons, gearTier } = props
+  const { build, gearItems, weapons, gearTier, pathId } = props
+  const devMode = useSettingsStore(state => state.devMode)
+  const [editing, setEditing] = useState<{ slot: GearSlot; item: GearItem | undefined; buildId: string }>()
+  const [importing, setImporting] = useState(false)
+  const editPiece = (slot: GearSlot) => {
+    if (!build) return
+    const own = ensureOwnBuild(pathId, build, gearTier)
+    const state = useGearStore.getState().buildState
+    const itemId = state.entries.find(entry => entry.id === own.id)?.equipped?.[slot]
+    setEditing({ slot, item: state.gearItems.find(item => item.id === itemId), buildId: own.id })
+  }
   // Presets carry their gear per tier; the application's own resolver picks the tier in use.
   const inventory = useMemo(
     () => (build ? resolveBuildInventory(build, gearItems, weapons, gearTier) : undefined),
@@ -100,21 +118,51 @@ export function GearPanel(props: Props) {
           <span className="ds-step">{"2"}</span>
           {copy.step}
         </h2>
-        <button type="button" className="ds-pill on" title={copy.editHint} onClick={props.onEditGear}>
-          {copy.edit}
-        </button>
       </div>
-      <span className="ds-muted">{copy.lead}</span>
+      <div className="ds-importrow">
+        <button type="button" className="ds-bigbtn on" onClick={() => setImporting(true)}>
+          <span>{copy.importOfficial}</span>
+          <small>{copy.importOfficialHint}</small>
+        </button>
+        {build?.isDefault ? (
+          <button type="button" className="ds-bigbtn" onClick={() => ensureOwnBuild(pathId, build, gearTier)}>
+            <span>{copy.fromPreset}</span>
+            <small>{copy.fromPresetHint}</small>
+          </button>
+        ) : null}
+      </div>
+      <span className="ds-muted">
+        {build?.isDefault ? copy.presetNote : copy.ownNote} {copy.tapToEdit} {copy.lead}
+      </span>
       <div className="ds-gearcards">
         {equipped.map(({ slot, item }) => (
-          <GearPieceCard key={slot} slot={slot} item={item} />
+          <GearPieceCard key={slot} slot={slot} item={item} onEdit={editPiece} />
         ))}
       </div>
+      <PieceEditorDialog
+        open={editing}
+        pathId={pathId}
+        weapons={weapons}
+        build={build}
+        gearItems={gearItems}
+        context={props.context}
+        rotation={props.rotation}
+        onClose={() => setEditing(undefined)}
+      />
+      <OfficialImportDialog
+        open={importing}
+        pathId={pathId}
+        weapons={weapons}
+        devMode={devMode}
+        onClose={() => setImporting(false)}
+        onImported={() => setImporting(false)}
+      />
     </section>
   )
 }
 
-function GearPieceCard({ slot, item }: { slot: GearSlot; item: GearItem | undefined }) {
+function GearPieceCard(props: { slot: GearSlot; item: GearItem | undefined; onEdit: (slot: GearSlot) => void }) {
+  const { slot, item } = props
   const rows = item ? lineRows(item) : []
   const measured = rows.filter(row => row.fraction !== undefined)
   const grade = measured.length
@@ -122,23 +170,23 @@ function GearPieceCard({ slot, item }: { slot: GearSlot; item: GearItem | undefi
     : undefined
   const attunement = item?.attunement
   return (
-    <article className="ds-piece">
-      <header>
-        <div>
+    <button type="button" className="ds-piece" onClick={() => props.onEdit(slot)}>
+      <span className="ds-piece-head">
+        <span className="ds-piece-name">
           <b>{slotLabel(slot)}</b>
           <span className="ds-muted">
             {item ? gameText(gearData.gear[item.definitionId]?.name) : copy.empty}
             {item?.relayed ? ` · ${copy.relayed}` : ""}
           </span>
-        </div>
+        </span>
         {grade !== undefined ? <span className={`ds-grade ${gradeClass(grade)}`}>{grade}%</span> : null}
-      </header>
+      </span>
       {rows.map(row => (
-        <div className="ds-line" key={row.id}>
+        <span className="ds-line" key={row.id}>
           <span>{row.label}</span>
           <span className="ds-num">{row.value}</span>
           <Meter fraction={row.fraction ?? 0} low={(row.fraction ?? 1) < 0.85} />
-        </div>
+        </span>
       ))}
       {attunement ? (
         <span className="ds-muted">
@@ -151,7 +199,7 @@ function GearPieceCard({ slot, item }: { slot: GearSlot; item: GearItem | undefi
           </b>
         </span>
       ) : null}
-    </article>
+    </button>
   )
 }
 

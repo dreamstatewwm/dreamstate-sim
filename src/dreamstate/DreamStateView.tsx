@@ -76,7 +76,6 @@ type Props = {
   rotation: RotationRecord | undefined
   weapons: [WeaponId, WeaponId]
   gearTier: GearLevel
-  onEditGear: () => void
 }
 
 export function DreamStateView(props: Props) {
@@ -173,7 +172,6 @@ export function DreamStateView(props: Props) {
           rotation={props.rotation}
           weapons={props.weapons}
           gearTier={props.gearTier}
-          onEditGear={props.onEditGear}
         />
         <aside className="ds-results">
           <section className="ds-panel ds-dps">
@@ -233,7 +231,6 @@ export function DreamStateView(props: Props) {
             rotation={props.rotation}
             weapons={props.weapons}
             gearTier={props.gearTier}
-            onEditGear={props.onEditGear}
           />
         </aside>
       </div>
