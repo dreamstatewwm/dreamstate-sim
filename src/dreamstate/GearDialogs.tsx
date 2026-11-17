@@ -30,8 +30,11 @@ const copy = {
   importStep2: "Open the official Where Winds Meet dashboard and log in:",
   importStep3: "Click the bookmark there. It copies your equipped gear.",
   importStep4: "Come back here and paste it below.",
-  importPhone: "On a phone? Do this once on a computer; your gear is then saved in that browser.",
+  importPhone:
+    'On a phone, bookmarks are awkward: close this, tap each piece and use "Scan a screenshot" instead. Gear is saved per browser, so an import on a computer stays on that computer.',
   importButton: "Import gear",
+  notGear:
+    "That doesn't look like the copied gear. Click the bookmark on the dashboard again, then paste the whole thing here.",
   cancel: "Cancel",
   wrongPath: "This gear is for {path}. Pick that path above, then import again.",
   noPath: "These weapons don't match any path the simulator supports yet.",
@@ -128,6 +131,18 @@ function PieceEditor(props: EditorProps & { open: NonNullable<EditorProps["open"
   )
 }
 
+/** A paste that isn't JSON at all is almost always a partial or wrong clipboard. */
+function importErrorMessage(error: unknown) {
+  switch (true) {
+    case error instanceof SyntaxError:
+      return copy.notGear
+    case error instanceof Error:
+      return error.message
+    default:
+      return t("ui.buildTab.dashboardImportError")
+  }
+}
+
 type ImportProps = {
   open: boolean
   pathId: PathId
@@ -192,7 +207,7 @@ export function OfficialImportDialog(props: ImportProps) {
       props.onImported(result.importedBuildIds[0])
       close()
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : t("ui.buildTab.dashboardImportError"))
+      setMessage(importErrorMessage(error))
     }
   }
   return (

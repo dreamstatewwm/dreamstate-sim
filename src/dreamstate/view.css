@@ -482,6 +482,10 @@
   max-width: none;
 }
 
+.ds-form:focus {
+  outline: none;
+}
+
 .ds-form {
   display: flex;
   flex-direction: column;
@@ -612,6 +616,33 @@
   margin-bottom: var(--space-sm);
 }
 
+/* The engine's "Recalculating… n%" badge, sized like the Codex labels. */
+.ds-view .ds-status {
+  margin: 0;
+  padding: var(--space-3xs) var(--space-xs);
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+
+.ds-split .ds-label {
+  white-space: nowrap;
+}
+
+/* Focus rings in the accent colour; opening a dialog focuses its first button without a ring. */
+.ds-view button:focus-visible,
+.ds-dialog button:focus-visible,
+.ds-dialog a:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.ds-dialog button:focus:not(:focus-visible) {
+  outline: none;
+}
+
 /* Simple mode: only the DreamState page shows; the full simulator stays mounted underneath. */
 .ds-simple .page-content > :not(.ds-view),
 .ds-simple .page-footer {
@@ -629,6 +660,16 @@
 }
 
 @media (max-width: 40rem) {
+  /* 11 paths as 4 + 4 + 3, so no path sits alone on a row. */
+  .ds-paths {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .ds-chip {
+    padding-inline: var(--space-2xs);
+  }
+
   .ds-field-row {
     grid-template-columns: minmax(0, 1fr) 6rem;
   }

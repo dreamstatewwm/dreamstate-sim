@@ -1,4 +1,4 @@
-import { useState, type Dispatch, type ReactNode, type SetStateAction } from "react"
+import { useEffect, useRef, useState, type Dispatch, type ReactNode, type SetStateAction } from "react"
 
 import { Meter } from "@/dreamstate/Meter"
 import {
@@ -84,6 +84,18 @@ function bestRoll(
 export function PieceForm(props: Props) {
   const { definition, draft, setDraft } = props
   const [scanning, setScanning] = useState(false)
+  // Start keyboard focus on the form itself, so opening it doesn't ring the scan button.
+  const formRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    // The dialog opens (and focuses and scrolls to its first button) after this effect runs, so
+    // wait a frame, then move focus to the form and start at the top.
+    const frame = requestAnimationFrame(() => {
+      formRef.current?.focus({ preventScroll: true })
+      const dialog = formRef.current?.closest("dialog")
+      if (dialog) dialog.scrollTop = 0
+    })
+    return () => cancelAnimationFrame(frame)
+  }, [])
   const levels = shownLevels.includes(draft.level) ? shownLevels : [...shownLevels, draft.level]
   const takenExtras = new Set(draft.additionalAffixes.map(affix => affix.key).filter(Boolean))
   const setLevel = (level: GearLevel) =>
@@ -207,7 +219,7 @@ export function PieceForm(props: Props) {
     )
   }
   return (
-    <div className="ds-form">
+    <div className="ds-form" ref={formRef} tabIndex={-1}>
       <div className="ds-form-head">
         <div>
           {props.slotLabel !== gameText(definition.name) ? <span className="ds-label">{props.slotLabel}</span> : null}

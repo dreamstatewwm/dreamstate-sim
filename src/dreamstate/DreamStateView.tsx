@@ -201,7 +201,7 @@ export function DreamStateView(props: Props) {
                 </span>
               ) : null}
             </div>
-            <CalculationStatus category="baseline" />
+            <CalculationStatus category="baseline" className="ds-status" />
           </section>
 
           <section className="ds-panel">
@@ -224,7 +224,7 @@ export function DreamStateView(props: Props) {
           <section className="ds-panel">
             <div className="ds-split">
               <span className="ds-label">{copy.priority}</span>
-              <CalculationStatus category="statPriority" />
+              <CalculationStatus category="statPriority" className="ds-status" />
             </div>
             <ol className="ds-prio">
               {priority.map((row, index) => (

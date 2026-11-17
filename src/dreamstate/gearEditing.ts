@@ -20,7 +20,6 @@ import {
   type GearLevel,
   type GearSlot,
 } from "@/gear"
-import { t } from "@/i18n"
 import { useGearStore } from "@/stores/gearStore"
 import type { WeaponId } from "@/types"
 
@@ -113,6 +112,16 @@ export function editorOptions(input: {
   }
 }
 
+/** The full editor's checks, worded for the Codex form ("main line" and "extra lines"). */
+const formErrors = {
+  main: "Choose the main line and enter its value.",
+  mainAvailability: "That main line can't roll on this piece.",
+  incomplete: "Each line you fill in needs both a stat and a value.",
+  attunement: "That attunement can't roll on this piece for this path.",
+  extra: "One of the extra lines can't roll on this piece.",
+  duplicate: "Two extra lines can't be the same stat.",
+}
+
 /** The draft as a saved item, or the error the full editor would show for it. */
 export function itemFromDraft(input: {
   draft: GearDraft
@@ -122,7 +131,7 @@ export function itemFromDraft(input: {
 }): { item: GearItem } | { error: string } {
   const { draft, slot, editingItemId, options } = input
   const definition = options.definition
-  if (!definition) return { error: t("ui.buildTab.baseAffixAvailabilityError") }
+  if (!definition) return { error: formErrors.mainAvailability }
   const baseAffix = normalizeDraftValue(draft.baseAffix, gearData.affixes, "affix", draft.relayed, draft.level)
   const additionalAffixDrafts = draft.additionalAffixes.filter(affix => affix.key || affix.value.trim())
   const additionalAffixes = additionalAffixDrafts.map(affix =>
@@ -132,19 +141,18 @@ export function itemFromDraft(input: {
   const attunement = hasAttunementDraft
     ? normalizeDraftValue(draft.attunement, attunementData, "attunement", draft.relayed, draft.level)
     : undefined
-  if (!baseAffix) return { error: t("ui.buildTab.baseAffixValueError") }
-  if (!options.baseAffixOptions.includes(baseAffix.key)) return { error: t("ui.buildTab.baseAffixAvailabilityError") }
+  if (!baseAffix) return { error: formErrors.main }
+  if (!options.baseAffixOptions.includes(baseAffix.key)) return { error: formErrors.mainAvailability }
   if (additionalAffixes.some(affix => !affix) || (hasAttunementDraft && !attunement))
-    return { error: t("ui.buildTab.optionalAttributeError") }
-  if (attunement && !options.attunementOptions.includes(attunement.key))
-    return { error: t("ui.buildTab.attunementAvailabilityError") }
+    return { error: formErrors.incomplete }
+  if (attunement && !options.attunementOptions.includes(attunement.key)) return { error: formErrors.attunement }
   const normalizedAdditional = additionalAffixes.filter((affix): affix is { key: string; value: number } =>
     Boolean(affix),
   )
   if (normalizedAdditional.some(affix => !options.additionalAffixOptions.includes(affix.key)))
-    return { error: t("ui.buildTab.additionalAffixAvailabilityError") }
+    return { error: formErrors.extra }
   if (new Set(normalizedAdditional.map(affix => affix.key)).size !== normalizedAdditional.length)
-    return { error: t("ui.buildTab.duplicateAffixError") }
+    return { error: formErrors.duplicate }
   const turned =
     draft.turnedAffixIndex !== undefined && draft.additionalAffixes[draft.turnedAffixIndex]?.key
       ? additionalAffixDrafts.indexOf(draft.additionalAffixes[draft.turnedAffixIndex])
