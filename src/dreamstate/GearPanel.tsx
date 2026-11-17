@@ -141,6 +141,7 @@ export function GearPanel(props: Props) {
       </div>
       <PieceEditorDialog
         open={editing}
+        slotLabel={editing ? slotLabel(editing.slot) : ""}
         pathId={pathId}
         weapons={weapons}
         build={build}

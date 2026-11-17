@@ -5,17 +5,11 @@ import { typedPathDefinitions } from "@/application/gameData/paths"
 import type { MeasurementContext } from "@/calculations/rotationCalculationBundle"
 import type { RotationRecord } from "@/calculations/rotationTimeline"
 import { editorOptions, itemFromDraft, updateBuildInventory } from "@/dreamstate/gearEditing"
-import { capAndFilterGearDraft, GearEditor, itemToDraft, newDraft, type GearDraft } from "@/features/build/GearEditor"
+import { PieceForm } from "@/dreamstate/PieceForm"
+import { itemToDraft, newDraft, type GearDraft } from "@/features/build/GearEditor"
 import { GearSuggestions } from "@/features/build/GearSuggestions"
 import { officialImportForPath, officialImportPaths } from "@/features/build/officialImportReview"
-import {
-  gearDefinitionForSlot,
-  mergeImportedBuildState,
-  type BuildEntry,
-  type GearItem,
-  type GearLevel,
-  type GearSlot,
-} from "@/gear"
+import { gearDefinitionForSlot, mergeImportedBuildState, type BuildEntry, type GearItem, type GearSlot } from "@/gear"
 import { gameText, t } from "@/i18n"
 import { createOfficialGearBookmarklet } from "@/officialGearBookmarklet"
 import { useGearStore } from "@/stores/gearStore"
@@ -53,6 +47,7 @@ type EditorProps = {
   gearItems: GearItem[]
   context: MeasurementContext
   rotation: RotationRecord | undefined
+  slotLabel: string
   onClose: () => void
 }
 
@@ -63,7 +58,7 @@ export function PieceEditorDialog(props: EditorProps) {
     <Dialog
       open={Boolean(open && definition)}
       onClose={props.onClose}
-      className="gear-editor-modal"
+      className="ds-dialog ds-piece-dialog"
       label={`${copy.editTitle} ${gameText(definition?.name)}`}
     >
       {open && definition ? (
@@ -83,10 +78,6 @@ function PieceEditor(props: EditorProps & { open: NonNullable<EditorProps["open"
   const definition = options.definition
   const definitionId = gearDefinitionForSlot(slot, weapons).definitionId
   const editingItemId = editedItem?.id
-  const selectedAdditionalKeys = useMemo(
-    () => new Set(draft.additionalAffixes.map(affix => affix.key).filter(Boolean)),
-    [draft.additionalAffixes],
-  )
   const suggestions = useMemo(
     () => (
       <GearSuggestions
@@ -119,27 +110,17 @@ function PieceEditor(props: EditorProps & { open: NonNullable<EditorProps["open"
     onClose()
   }
   return (
-    <GearEditor
+    <PieceForm
+      slotLabel={props.slotLabel}
       definition={definition}
       definitionId={definitionId}
-      definitionName={gameText(definition.name)}
-      // Always the "new piece" layout, which is the one with the screenshot scan; saving still
-      // updates the tapped piece in place.
-      editingExisting={false}
       draft={draft}
-      error={error}
+      setDraft={setDraft}
       baseAffixOptions={options.baseAffixOptions}
       additionalAffixOptions={options.additionalAffixOptions}
       attunementOptions={options.attunementOptions}
-      selectedAdditionalKeys={selectedAdditionalKeys}
-      onDraftChange={setDraft}
-      onImportSlot={scanned => {
-        if (scanned !== definitionId) setError(copy.otherPiece)
-      }}
-      onLevelChange={(level: GearLevel) =>
-        setDraft(current => capAndFilterGearDraft(Object.assign({}, current, { level }), definition))
-      }
-      onRelayedChange={relayed => setDraft(current => capAndFilterGearDraft(current, definition, relayed))}
+      error={error}
+      onScanOtherPiece={() => setError(copy.otherPiece)}
       onCancel={onClose}
       onSave={save}
       suggestions={suggestions}
