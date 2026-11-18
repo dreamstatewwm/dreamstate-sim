@@ -62,6 +62,8 @@ const copy = {
   planWorking: "Measuring retunes…",
   planPreset: "Presets are fully relayed, so there is nothing to retune. Import your own gear to get a plan for it.",
   planNone: "No retune would raise DPS on this gear.",
+  planAllRelayed:
+    "Every piece is relayed, and relayed gear can't be retuned, so there is nothing to plan. If a piece isn't relayed in game yet, tap it and turn off Relayed.",
   planRelay: "then relay",
   planRelayOnly: "relay it",
   planNote: "Gains assume the top roll, so treat them as a ceiling.",
@@ -341,6 +343,9 @@ export function RetunePlan(props: Props) {
     switch (true) {
       case build?.isDefault:
         return "preset"
+      // Nothing to measure means no readings ever arrive, so say so instead of waiting on 0 / 0.
+      case build !== undefined && pieces.length === 0:
+        return "allRelayed"
       case !requested:
         return "idle"
       case steps === undefined:
@@ -373,6 +378,8 @@ export function RetunePlan(props: Props) {
             <Meter fraction={targets.length ? measuredCount / targets.length : 0} />
           </>
         )
+      case "allRelayed":
+        return <span className="ds-muted">{copy.planAllRelayed}</span>
       case "none":
         return <span className="ds-muted">{copy.planNone}</span>
       case "done":
