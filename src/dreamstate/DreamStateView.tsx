@@ -23,8 +23,8 @@ import "./view.css"
  * The Codex is English-only, so its copy lives in this object rather than the translation table.
  */
 const copy = {
-  title: "Simulator · Test your build",
-  lead: "Pick a path and build to see its damage, how close the gear is to the best rolls, and which stats are worth the most.",
+  title: "PvE Simulator · Test your build",
+  lead: "Pick a path and build to see its damage against a boss, how close the gear is to the best rolls, and which stats are worth the most. PvE only: PvP damage against players isn't simulated.",
   step1: "Path and build",
   pathGroup: "Path",
   build: "Build",
